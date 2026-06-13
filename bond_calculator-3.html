@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Облигация">
+<title>Облигация</title>
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #13151c;
+    --surface2: #1a1d27;
+    --border: #252836;
+    --text: #eef0f6;
+    --muted: #6b7280;
+    --subtle: #9ca3af;
+    --r: 16px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --c0: #7c6af7;
+    --c1: #4fc3a1;
+    --c2: #f0a050;
+    --c3: #f472b6;
+    --c4: #60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif; overscroll-behavior: none; }
+  body { display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; min-height: 100dvh; }
+
+  .header { padding: 52px 20px 12px; }
+  .header h1 { font-size: 1.05rem; font-weight: 600; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .hero { padding: 4px 20px 16px; }
+  .hero-amount { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .hero-sub { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
+  .hero-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: #4fc3a112; border: 1px solid #4fc3a128; border-radius: 20px; padding: 5px 12px; }
+  .hero-pill span { font-size: 0.85rem; font-weight: 600; color: #4fc3a1; }
+  .hero-pill .yld { color: var(--muted); font-size: 0.8rem; }
+
+  .section-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 0 20px; margin-bottom: 8px; }
+
+  .input-wrap { padding: 0 20px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .input-card { background: var(--surface); border-radius: var(--r); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); gap: 8px; }
+  .input-card label { font-size: 0.82rem; color: var(--subtle); flex: 1; white-space: nowrap; }
+  .input-card input { background: transparent; border: none; outline: none; color: var(--text); font-size: 1.05rem; font-weight: 600; text-align: right; min-width: 0; width: 150px; font-family: inherit; }
+  .input-card input::-webkit-inner-spin-button { display: none; }
+
+  /* Seg control */
+  .seg-wrap { padding: 0 20px 12px; }
+  .seg-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+  .seg { display: flex; background: var(--surface); border-radius: 12px; padding: 4px; gap: 3px; border: 1px solid var(--border); }
+  .seg-btn { flex: 1; padding: 10px 4px; border: none; border-radius: 9px; background: transparent; color: var(--muted); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.2s; line-height: 1.3; text-align: center; }
+  .seg-btn.active { background: var(--c0); color: #fff; box-shadow: 0 2px 8px #7c6af740; }
+
+  /* Periods */
+  .periods-wrap { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .period-card { background: var(--surface); border-radius: var(--r); border: 1px solid var(--border); overflow: hidden; }
+  .period-header { display: flex; align-items: center; padding: 12px 14px; gap: 10px; }
+  .period-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .period-title { font-size: 0.85rem; font-weight: 600; flex: 1; }
+  .period-remove { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .period-body { display: flex; border-top: 1px solid var(--border); }
+  .period-field { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .period-field:first-child { border-right: 1px solid var(--border); }
+  .period-field label { font-size: 0.7rem; color: var(--muted); }
+  .period-field input { background: transparent; border: none; outline: none; color: var(--text); font-size: 1rem; font-weight: 600; width: 100%; font-family: inherit; padding: 0; }
+  .period-field input::-webkit-inner-spin-button { display: none; }
+
+  .add-btn { margin: 10px 20px 0; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; border-radius: var(--r); border: 1.5px dashed var(--border); background: transparent; color: var(--muted); font-size: 0.85rem; cursor: pointer; width: calc(100% - 40px); transition: all 0.2s; }
+  .add-btn.hidden { display: none; }
+
+  /* Mini cards */
+  .mini-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 20px 0; }
+  .mini-card { background: var(--surface); border-radius: var(--r); padding: 14px; border: 1px solid var(--border); }
+  .mini-card .mc-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; }
+  .mini-card .mc-val { font-size: 0.92rem; font-weight: 700; }
+
+  /* Mini cards 3-col */
+  .mini-cards-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 8px 20px 0; }
+  .mini-cards-3 .mini-card .mc-val { font-size: 0.82rem; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 20px 0; }
+
+  /* Table */
+  .tbl-section { padding: 10px 0 0; flex: 1; display: flex; flex-direction: column; }
+  .tbl-top { display: flex; align-items: center; justify-content: space-between; padding: 0 20px 8px; }
+  .seg-sm { display: flex; background: var(--surface); border-radius: 8px; padding: 3px; gap: 2px; }
+  .seg-sm-btn { padding: 6px 14px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.18s; }
+  .seg-sm-btn.active { background: var(--surface2); color: var(--text); box-shadow: 0 1px 3px #0005; }
+
+  .tbl-wrap { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px; padding-bottom: calc(20px + var(--safe-bottom)); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--bg); padding: 8px 4px 8px 0; font-size: 0.68rem; color: var(--muted); font-weight: 500; text-align: right; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  thead th:first-child { text-align: left; padding-left: 0; }
+  tbody tr { border-bottom: 1px solid #ffffff05; }
+  tbody tr.yr { border-bottom: 1px solid var(--border); background: #ffffff04; }
+  td { padding: 9px 4px 9px 0; font-size: 0.8rem; text-align: right; }
+  td:first-child { text-align: left; padding-left: 0; color: var(--subtle); }
+  .td-main { font-weight: 600; color: var(--text); font-size: 0.82rem; }
+  .td-gain { color: #4fc3a1; font-size: 0.75rem; }
+  .td-total { color: #7c6af7; font-size: 0.75rem; }
+  .td-contrib { color: #f0a050; font-size: 0.75rem; }
+  .badge { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 0.62rem; margin-left: 3px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header"><h1>Облигация</h1></div>
+
+<div class="hero">
+  <div class="hero-amount" id="heroAmount">—</div>
+  <div class="hero-sub">итого через <span id="heroMonths">0</span> мес.</div>
+  <div class="hero-pill">
+    <span id="heroProfit">—</span>
+    <span class="yld" id="heroYield"></span>
+  </div>
+</div>
+
+<!-- Капитализация -->
+<div class="seg-wrap">
+  <div class="seg-label">Капитализация</div>
+  <div class="seg">
+    <button class="seg-btn active" id="capM" onclick="setCap('monthly')">Ежемесячная</button>
+    <button class="seg-btn" id="capQ" onclick="setCap('quarterly')">Ежеквартальная</button>
+  </div>
+</div>
+
+<div class="section-label">Основные параметры</div>
+<div class="input-wrap">
+  <div class="input-card">
+    <label>Начальная сумма, ₽</label>
+    <input type="number" id="principal" value="1000000" inputmode="numeric">
+  </div>
+  <div class="input-card">
+    <label>Доп. взнос в месяц, ₽</label>
+    <input type="number" id="monthly" value="0" inputmode="numeric" placeholder="0">
+  </div>
+</div>
+
+<div class="section-label">Периоды</div>
+<div class="periods-wrap" id="periodsWrap"></div>
+<button class="add-btn" id="addBtn" onclick="addPeriod()">＋ Добавить период</button>
+
+<div class="mini-cards">
+  <div class="mini-card">
+    <div class="mc-label">Вложено (с взносами)</div>
+    <div class="mc-val" style="color:#94a3b8" id="mcInvested">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">Доходность</div>
+    <div class="mc-val" style="color:var(--c2)" id="mcYield">—</div>
+  </div>
+</div>
+<div class="mini-cards-3">
+  <div class="mini-card">
+    <div class="mc-label">Начало</div>
+    <div class="mc-val" style="color:#94a3b8" id="mcPrincipal">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">Взносы</div>
+    <div class="mc-val" style="color:var(--c2)" id="mcContribs">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">Прибыль</div>
+    <div class="mc-val" style="color:var(--c1)" id="mcProfit">—</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="tbl-section">
+  <div class="tbl-top">
+    <div class="section-label" style="padding:0;margin:0;">Таблица роста</div>
+    <div class="seg-sm">
+      <button class="seg-sm-btn active" id="btnAll" onclick="setView('all')">Месяцы</button>
+      <button class="seg-sm-btn" id="btnYear" onclick="setView('year')">Годы</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Период</th><th>Сумма</th><th>%</th><th>Взнос</th><th>+итого</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const COLOR_HEX = ['#7c6af7','#4fc3a1','#f0a050','#f472b6','#60a5fa'];
+let periods = [
+  { rate: 15, months: 24 },
+  { rate: 11.5, months: 36 }
+];
+let viewMode = 'all';
+let capMode = 'monthly'; // 'monthly' or 'quarterly'
+let allRows = [];
+
+function ru(n) { return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }); }
+function fmt(n) { return ru(n) + ' ₽'; }
+function fmtD(n) { return '+' + ru(n) + ' ₽'; }
+
+function setCap(mode) {
+  capMode = mode;
+  document.getElementById('capM').classList.toggle('active', mode === 'monthly');
+  document.getElementById('capQ').classList.toggle('active', mode === 'quarterly');
+  calc();
+}
+
+function renderPeriods() {
+  const wrap = document.getElementById('periodsWrap');
+  wrap.innerHTML = '';
+  periods.forEach((p, i) => {
+    const color = COLOR_HEX[i % COLOR_HEX.length];
+    const div = document.createElement('div');
+    div.className = 'period-card';
+    div.innerHTML = `
+      <div class="period-header">
+        <div class="period-dot" style="background:${color}"></div>
+        <div class="period-title">Период ${i + 1}</div>
+        ${periods.length > 1 ? `<button class="period-remove" onclick="removePeriod(${i})">✕</button>` : ''}
+      </div>
+      <div class="period-body">
+        <div class="period-field">
+          <label>Ставка, % год.</label>
+          <input type="number" value="${p.rate}" step="0.1" inputmode="decimal" oninput="updatePeriod(${i},'rate',this.value)">
+        </div>
+        <div class="period-field">
+          <label>Кол-во месяцев</label>
+          <input type="number" value="${p.months}" inputmode="numeric" oninput="updatePeriod(${i},'months',this.value)">
+        </div>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+  document.getElementById('addBtn').classList.toggle('hidden', periods.length >= 5);
+}
+
+function updatePeriod(i, key, val) {
+  periods[i][key] = parseFloat(val) || 0;
+  calc();
+}
+
+function addPeriod() {
+  if (periods.length >= 5) return;
+  periods.push({ rate: 10, months: 12 });
+  renderPeriods();
+  calc();
+}
+
+function removePeriod(i) {
+  if (periods.length <= 1) return;
+  periods.splice(i, 1);
+  renderPeriods();
+  calc();
+}
+
+function calc() {
+  const P = parseFloat(document.getElementById('principal').value) || 0;
+  const monthlyAdd = parseFloat(document.getElementById('monthly').value) || 0;
+  const isQuarterly = capMode === 'quarterly';
+  // капитализация: ежемесячная = каждый месяц, ежеквартальная = каждые 3 месяца
+  const capEvery = isQuarterly ? 3 : 1;
+
+  allRows = [];
+  let bal = P;
+  let monthIndex = 0;
+  let totalContribs = 0;
+  // для ежеквартальной: накапливаем проценты внутри квартала
+  let pendingInterest = 0;
+
+  for (let pi = 0; pi < periods.length; pi++) {
+    const annualRate = periods[pi].rate / 100;
+    const m = Math.round(periods[pi].months) || 0;
+
+    for (let mi = 0; mi < m; mi++) {
+      monthIndex++;
+
+      // Добавляем ежемесячный взнос (в начале месяца)
+      const contrib = monthIndex === 1 ? 0 : monthlyAdd; // первый месяц — только начальная сумма
+      bal += contrib;
+      totalContribs += contrib;
+
+      // Начисляем проценты
+      const monthlyRate = annualRate / 12;
+      const interest = bal * monthlyRate;
+
+      if (isQuarterly) {
+        pendingInterest += interest;
+        if (monthIndex % 3 === 0) {
+          bal += pendingInterest;
+          pendingInterest = 0;
+        }
+      } else {
+        bal += interest;
+      }
+
+      const totalGain = bal + pendingInterest - P - totalContribs;
+
+      allRows.push({
+        month: monthIndex,
+        phase: pi,
+        balance: bal + pendingInterest,
+        interest: isQuarterly ? (monthIndex % 3 === 0 ? interest + (pendingInterest - interest) : 0) : interest,
+        interestAccrued: interest,
+        contrib: contrib,
+        totalContribs: totalContribs,
+        totalGain: totalGain,
+        isYearEnd: monthIndex % 12 === 0
+      });
+    }
+  }
+
+  // Flush pending interest if periods don't end on quarter
+  if (pendingInterest > 0 && allRows.length > 0) {
+    const last = allRows[allRows.length - 1];
+    last.balance += 0; // already included
+  }
+
+  const final = allRows.length ? allRows[allRows.length - 1].balance : P;
+  const invested = P + totalContribs;
+  const profit = final - invested;
+  const yld = invested > 0 ? ((final / invested - 1) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('heroAmount').textContent = fmt(final);
+  document.getElementById('heroMonths').textContent = monthIndex;
+  document.getElementById('heroProfit').textContent = fmtD(profit);
+  document.getElementById('heroYield').textContent = '+' + yld + '%';
+  document.getElementById('mcInvested').textContent = fmt(invested);
+  document.getElementById('mcYield').textContent = '+' + yld + '%';
+  document.getElementById('mcPrincipal').textContent = fmt(P);
+  document.getElementById('mcContribs').textContent = fmt(totalContribs);
+  document.getElementById('mcProfit').textContent = fmt(profit);
+
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  const rows = viewMode === 'year'
+    ? allRows.filter(r => r.isYearEnd || r.month === allRows.length)
+    : allRows;
+
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    if (r.isYearEnd) tr.classList.add('yr');
+    const color = COLOR_HEX[r.phase % COLOR_HEX.length];
+    const yr = Math.ceil(r.month / 12);
+    const label = viewMode === 'year' ? `Год ${yr}` : `Мес. ${r.month}`;
+    const rate = periods[r.phase]?.rate ?? '';
+    const contribCell = r.contrib > 0 ? `<span class="td-contrib">+${ru(r.contrib)}</span>` : `<span style="color:var(--muted)">—</span>`;
+    tr.innerHTML = `
+      <td>${label}<span class="badge" style="background:${color}22;color:${color}">${rate}%</span></td>
+      <td class="td-main">${fmt(r.balance)}</td>
+      <td class="td-gain">+${ru(r.interestAccrued)}</td>
+      <td>${contribCell}</td>
+      <td class="td-total">${fmtD(r.totalGain)}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function setView(v) {
+  viewMode = v;
+  document.getElementById('btnAll').classList.toggle('active', v === 'all');
+  document.getElementById('btnYear').classList.toggle('active', v === 'year');
+  renderTable();
+}
+
+document.getElementById('principal').addEventListener('input', calc);
+document.getElementById('monthly').addEventListener('input', calc);
+
+renderPeriods();
+calc();
+</script>
+</body>
+</html>
